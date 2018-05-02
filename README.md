@@ -3,7 +3,8 @@ fastvar
 
 Some quick 'n dirty variant calling tools
 
-To compile:
+Installation
+------------
 
     git clone http://github.com/txje/fastvar
     cd fastvar
@@ -25,7 +26,8 @@ To compile:
     cd ..
     make
 
-Usage:
+Usage
+-----
 
     ./fasttype <BAM> <BED> <REF FASTA>
 
@@ -38,14 +40,43 @@ BED: list of variant positions to capture in BED format (like dbSNP's [discontin
 
 We actually only care about the first two fields - chrom and start position.
 
-IMPORTANT: in this format, for whatever reason, the canonical reference position of the SNP is the *end*, and the start is (pos - 1). In practice, we just use the "start" as an index into the 0-indexed reference, so if you're off by one, most of the time all of your loci will appear homozygous and there will be little or no differences between samples. If you see this, *double-check your BED file*.
+IMPORTANT: in this format, for whatever reason, the canonical reference position of the SNP is the *end*, and the start is (pos - 1). In practice, we just use the "start" as an index into the 0-indexed reference, so if you're off by one, most of the time all of your loci will appear homozygous and there will be little or no differences between samples. If you see this, *double-check your BED file*. See data/exomeChip\_fingerprint\_snps.bed as an example.
 
 REF FASTA: fasta file used for alignments
 
-Output: a tab-separated file in the following format:
+
+Output
+------
+
+A tab-separated file in the following format:
 
     chrom	start	end	ref_allele	A	C	G	T	N	Unknown
 
 Where the first three fields match the input BED file, followed by the allele from the reference fasta, and counts for each read allele observed at that position, which - in rare cases - may include an "Unknown" that accounts for all manner of sins, including deletions.
 
+
+Notes
+-----
+
+For the cleanest and fastest rapid genotyping, here's what I recommend:
+
+    git clone https://github.com/lh3/minimap2
+    cd minimap2
+    make
+    cd ..
+
+    
+    ref=h38.fa                                          # or something
+    r1=SAMPLE_A_R1.fastq.gz                             # or something
+    r2=SAMPLE_A_R2.fastq.gz                             # or something
+    snps=fastvar/data/exomeChip_fingerprint_snps.bed    # or something
+    
+    ./minimap2/minimap2 -t $(nproc) -ax sr $ref $r1 $r2 | ./fastvar/fasttype - $snp_bed $ref > SAMPLE_A.fast_variants
+
+This will be limited in time and memory by the alignment in most cases (except for *very* large BED SNP files)
+
+I've included a small set of common exome genotyping SNPs (data/exomeChip\_fingerprint\_snps.bed) (see https://genome.sph.umich.edu/wiki/Exome\_Chip\_Design) that are typically sufficient to match and distinguish samples by individual for fast sanity checks (read barcode mixups).
+
 Feel free to submit issues, pull requests, and hate mail.
+
+
