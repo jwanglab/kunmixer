@@ -22,8 +22,7 @@ void show_bits(unsigned int x) {
  * Jeremy Wang
  * 20180419
  *
- * As fast as possible compute the loci where the average read from
- * the bam file differs from the reference
+ * As fast as possible, compute the set of alleles at each locus given in the BED file
 */
 
 // have to reorder params to make this work with kseq
@@ -128,7 +127,14 @@ int main(int argc, char *argv[]) {
   bam1_t *aln;
   int ret_val;
 
-  bam = sam_open(bam_file, "rb");
+  if(strcmp(bam_file,  "-") == 0) {
+    bam = sam_open("-", "r");
+    fprintf(stderr, "Reading from stdin...\n");
+  } else {
+    bam = sam_open(bam_file, "rb");
+    fprintf(stderr, "Reading from bam file '%s'...\n", bam_file);
+  }
+
   if (bam == NULL) {
     fprintf(stderr, "Error opening \"%s\"\n", bam_file);
     return -1;
