@@ -141,7 +141,7 @@ int main(int argc, char *argv[]) {
   // construct array from reference information so that we can look it up with read.tid
   char **ref_array = malloc(sizeof(char*) * header->n_targets);
   int *rlen_array = malloc(sizeof(uint32_t) * header->n_targets); // has to be a plain int because that's what kseq gives out
-  //printf("BAM targets:\n");
+  //printf("BAM targets (%d):\n", header->n_targets);
   int i, j;
   for (i = 0; i < header->n_targets; i++) {
     //printf("%s (%u bp)\n", header->target_name[i], header->target_len[i]);
@@ -188,7 +188,7 @@ int main(int argc, char *argv[]) {
 
     // set locus mask
     bin = kh_get(refId, rid, entry->chrom);
-    // TODO: check to make sure bin exists
+    // TODO: check to make sure bin exists - this segfaults if the BAM file was broken somehow
     int tid = kh_val(rid, bin);
     locus_mask[tid][entry->st/8] |= (1<<(entry->st%8));
 
