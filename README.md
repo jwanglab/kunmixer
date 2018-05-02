@@ -11,7 +11,7 @@ Installation
     mkdir incl
     cd incl
     
-    // install htslib
+    # install htslib
     git clone http://github.com/samtools/htslib
     cd htslib
     autoheader
@@ -20,7 +20,7 @@ Installation
     make
     make install
     
-    // get klib headers
+    # get klib headers
     git clone http://github.com/attractivechaos/klib
     
     cd ..
