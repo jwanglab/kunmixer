@@ -31,7 +31,7 @@ Usage
 
     ./fasttype <BAM> <BED> <REF FASTA>
 
-BAM: reads aligned to <REF FASTA> or '-' to read SAM format from the input stream
+BAM: reads aligned to &lt;REF FASTA&gt; or '-' to read SAM format from the input stream
 
 BED: list of variant positions to capture in BED format (like dbSNP's [discontinued] batch query results)
 
@@ -75,7 +75,7 @@ For the cleanest and fastest rapid genotyping, here's what I recommend:
 
 This will be limited in time and memory by the alignment in most cases (except for *very* large BED SNP files)
 
-I've included a small set of common exome genotyping SNPs (data/exomeChip\_fingerprint\_snps.bed) (see https://genome.sph.umich.edu/wiki/Exome\_Chip\_Design) that are typically sufficient to match and distinguish samples by individual for fast sanity checks (read barcode mixups).
+I've included a small set of common exome genotyping SNPs (data/exomeChip\_fingerprint\_snps.bed) (see https://genome.sph.umich.edu/wiki/Exome_Chip_Design) that are typically sufficient to match and distinguish samples by individual for fast sanity checks (read barcode mixups).
 
 Feel free to submit issues, pull requests, and hate mail.
 
