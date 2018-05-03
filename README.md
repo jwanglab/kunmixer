@@ -69,7 +69,7 @@ For the cleanest and fastest rapid genotyping, here's what I recommend:
     ref=h38.fa                                          # or something
     r1=SAMPLE_A_R1.fastq.gz                             # or something
     r2=SAMPLE_A_R2.fastq.gz                             # or something
-    snps=fastvar/data/exomeChip_fingerprint_snps.bed    # or something
+    snp_bed=fastvar/data/exomeChip_fingerprint_snps.bed    # or something
     
     ./minimap2/minimap2 -t $(nproc) -ax sr $ref $r1 $r2 | ./fastvar/fasttype - $snp_bed $ref > SAMPLE_A.fast_variants
 
