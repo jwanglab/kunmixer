@@ -77,13 +77,15 @@ bed_line_t *bed_read_line(bed_file_t* bed) {
   char strand;
 
   bed_line_t *line = malloc(sizeof(bed_line_t));
+  
+  bed->cur_row++;
 
   int nfields = fscanf(bed->fp, bed_format, line->chrom, &(line->st), &(line->en), line->name, &(line->score), &(line->strand));
   if(nfields != 6) { // line too short or small or -1 for EOF
     if(nfields == -1) {
       return NULL;
     } else {
-      fprintf(stderr, "A line does not appear to be in expected BED format - STOPPED READING HERE\n");
+      fprintf(stderr, "BED line %d does not appear to be in expected format - STOPPED READING HERE\n", bed->cur_row);
       return NULL;
     }
   }
@@ -111,4 +113,14 @@ bed_file_t bed_init(char* f) {
   bed_file_t bed = {bed_fp, header, 0};
 
   return bed;
+}
+
+int bed_close(bed_file_t* bed) {
+  fclose(bed->fp);
+  if(bed->header.sequences != NULL) {
+    free(bed->header.sequences);
+  }
+  if(bed->header.sequence_lengths != NULL) {
+    free(bed->header.sequence_lengths);
+  }
 }

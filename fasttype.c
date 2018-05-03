@@ -46,9 +46,9 @@ KHASH_MAP_INIT_STR(refLen, uint32_t);
 KHASH_MAP_INIT_STR(refId, int);
 
 
-// creates int:uint8 hash
+// creates int:uint32 hash
 // for mapping loci within a chromosome to an INDEX into the locus vector
-KHASH_MAP_INIT_INT(lociMap, uint8_t);
+KHASH_MAP_INIT_INT(lociMap, uint32_t);
 
 // creates string:lociMap hash
 // for mapping chromosome to the corresponding locus map
@@ -203,6 +203,7 @@ int main(int argc, char *argv[]) {
 
     entry = bed_read_line(&bed);
   }
+  //bed_close(&bed);
 
 
   // process reads...
