@@ -66,9 +66,9 @@ For the cleanest and fastest rapid genotyping, here's what I recommend:
     cd ..
 
     
-    ref=h38.fa                                          # or something
-    r1=SAMPLE_A_R1.fastq.gz                             # or something
-    r2=SAMPLE_A_R2.fastq.gz                             # or something
+    ref=h38.fa                                             # or something
+    r1=SAMPLE_A_R1.fastq.gz                                # or something
+    r2=SAMPLE_A_R2.fastq.gz                                # or something
     snp_bed=fastvar/data/exomeChip_fingerprint_snps.bed    # or something
     
     ./minimap2/minimap2 -t $(nproc) -ax sr $ref $r1 $r2 | ./fastvar/fasttype - $snp_bed $ref > SAMPLE_A.fast_variants
@@ -76,6 +76,8 @@ For the cleanest and fastest rapid genotyping, here's what I recommend:
 This will be limited in time and memory by the alignment in most cases (except for *very* large BED SNP files)
 
 I've included a small set of common exome genotyping SNPs (data/exomeChip\_fingerprint\_snps.bed) (see https://genome.sph.umich.edu/wiki/Exome_Chip_Design) that are typically sufficient to match and distinguish samples by individual for fast sanity checks (read barcode mixups).
+
+There is also another, much bigger set of exome SNPs with AF 0.45 - 0.55 from 1000 Genomes data: data/1kgenomes\_0.5af\_exome\_snps.bed
 
 Feel free to submit issues, pull requests, and hate mail.
 
