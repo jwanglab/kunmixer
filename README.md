@@ -62,6 +62,18 @@ A tab-separated file in the following format:
 Where the first three fields match the input BED file, followed by the allele from the reference fasta, and counts for each read allele observed at that position, which - in rare cases - may include an "Unknown" that accounts for all manner of sins, including deletions.
 
 
+Accuracy and efficiency
+-----------------------
+
+For both fastttype and ktype, memory usage is typically dominated the size of the reference (~3GB for humans).
+If you have *very* many SNPs, the variant bookkeeping will begin to contribute.
+
+Runtime is typically dominated by the BAM or read FASTQ size. In my hands, for high-depth (>100x) exome sequencing, fasttype takes ~2 min per sample and ktype takes ~7 min per sample from gzipped reads (on one thread).
+
+Right now, fasttype has two modes - one considers any properly aligned nucleotide and the other considers only reads with no indels. The results sometimes vary dramatically and I'm not 100% sure why.
+When no indels are allowed, results correspond very closely to the ktype results. When indels are allowed, many more alternate alleles appear - I don't know if these are strictly real or not.
+
+
 Notes
 -----
 
