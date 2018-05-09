@@ -164,12 +164,12 @@ int main(int argc, char *argv[]) {
   gzfp = gzopen(ref_fasta, "r");
   seq = kseq_init(gzfp);
 
-  printf("Reading fasta file: %s\n", ref_fasta);
+  //printf("Reading fasta file: %s\n", ref_fasta);
 
   int refid = 0;
   while ((l = kseq_read(seq)) >= 0) {
     // name: seq->name.s, seq: seq->seq.s, length: l
-    printf("Reading %s (%i bp).\n", seq->name.s, l);
+    //printf("Reading %s (%i bp).\n", seq->name.s, l);
 
     // seq array
     bin = kh_put(refSeq, ref, strdup(seq->name.s), &absent);
@@ -305,14 +305,14 @@ int main(int argc, char *argv[]) {
 
       n++;
       if(n % 100000 == 0) {
-        printf("Processed %d reads...\n", n);
+        //fprintf(stderr, "Processed %d reads...\n", n);
       }
     }
 
     gzclose(gzfp);
     kseq_destroy(seq);
   }
-  printf("%d k-mers hit a variant\n", hits);
+  fprintf(stderr, "%d k-mers hit a variant\n", hits);
 
 
   // output "variant" positions
