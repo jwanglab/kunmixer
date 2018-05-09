@@ -64,6 +64,69 @@ typedef struct locus{
 } locus;
 
 
+void print_alignment(int32_t* cigar, int n_cigar, uint8_t* qseq, char* rseq, int32_t rpos) {
+  int32_t qpos = 0, qstartpos, rstartpos; 
+  char* qstring = malloc(sizeof(char) * 1000);
+  char* astring = malloc(sizeof(char) * 1000);
+  char* rstring = malloc(sizeof(char) * 1000);
+  int i = 0, o;
+  for(o = 0; o < n_cigar; o++) {
+    char opc = bam_cigar_opchr(cigar[o]);
+    int oplen = bam_cigar_oplen(cigar[o]);
+    qstartpos = qpos;
+    rstartpos = rpos;
+    if(opc == 'M') {
+      while(qpos < qstartpos + oplen) {
+        char qc = ".AC.G...T......N"[bam_seqi(qseq, qpos)];
+        char rc = rseq[rpos];
+        // convert to uppercase
+        if(qc >= 97) qc = qc - 32;
+        if(rc >= 97) rc = rc - 32;
+        qstring[i] = qc;
+        astring[i] = '|';
+        rstring[i] = rc;
+        qpos++;
+        rpos++;
+        i++;
+      }
+    } else if(opc == 'I' || opc == 'S') { // insertion or softclip both consume the query only
+      while(qpos < qstartpos + oplen) {
+        char qc = ".AC.G...T......N"[bam_seqi(qseq, qpos)];
+        if(qc >= 97) qc = qc - 32;
+        qstring[i] = qc;
+        astring[i] = '*';
+        rstring[i] = '-';
+        qpos++;
+        i++;
+      }
+    } else if(opc == 'D') {
+      while(rpos < rstartpos + oplen) {
+        char rc = rseq[rpos];
+        if(rc >= 97) rc = rc - 32;
+        qstring[i] = '-';
+        astring[i] = '*';
+        rstring[i] = rc;
+        rpos++;
+        i++;
+      }
+    } else if(opc == 'H') { // hard clip, does nothing...
+      continue;
+    } else {
+      break;
+    }
+  }
+  qstring[i] = (char)NULL;
+  astring[i] = (char)NULL;
+  rstring[i] = (char)NULL;
+  printf("%s\n", qstring);
+  printf("%s\n", astring);
+  printf("%s\n", rstring);
+  free(qstring);
+  free(astring);
+  free(rstring);
+}
+
+
 int main(int argc, char *argv[]) {
 
   if(argc < 4) {
@@ -265,7 +328,8 @@ int main(int argc, char *argv[]) {
     }
     khash_t(lociMap) *lmap = kh_val(regions, bin);
 
-    if(aln->core.n_cigar > 1) continue; // skip any alignments with any indels
+    //if(aln->core.n_cigar > 1) continue; // skip any alignments with any indels
+    //print_alignment(cigar, aln->core.n_cigar, qseq, ref_array[tid], pos);
     for(o = 0; o < aln->core.n_cigar; o++) {
       char opc = bam_cigar_opchr(cigar[o]);
       int oplen = bam_cigar_oplen(cigar[o]);
