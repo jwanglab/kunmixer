@@ -17,10 +17,10 @@ void show_bits(unsigned int x) {
 }
 
 /*
- * fastdiff.c
+ * fasttype.c
  *
  * Jeremy Wang
- * 20180419
+ * 20180501
  *
  * As fast as possible, compute the set of alleles at each locus given in the BED file
 */
@@ -265,6 +265,7 @@ int main(int argc, char *argv[]) {
     }
     khash_t(lociMap) *lmap = kh_val(regions, bin);
 
+    if(aln->core.n_cigar > 1) continue; // skip any alignments with any indels
     for(o = 0; o < aln->core.n_cigar; o++) {
       char opc = bam_cigar_opchr(cigar[o]);
       int oplen = bam_cigar_oplen(cigar[o]);

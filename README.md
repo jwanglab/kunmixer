@@ -45,6 +45,13 @@ IMPORTANT: in this format, for whatever reason, the canonical reference position
 REF FASTA: fasta file used for alignments
 
 
+Or, directly from one or more unaligned read files, using a k-mer approach:
+
+    ./ktype <BED> <REF FASTA> <READ FASTA/Q> [<READ FASTA/Q> ...]
+
+READ FASTA/Q: may be gzipped
+
+
 Output
 ------
 
