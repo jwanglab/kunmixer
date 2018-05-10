@@ -70,7 +70,7 @@ If you have *very* many SNPs, the variant bookkeeping will begin to contribute.
 
 Runtime is typically dominated by the BAM or read FASTQ size. In my hands, for high-depth (>100x) exome sequencing, fasttype takes ~2 min per sample and ktype takes ~7 min per sample from gzipped reads (on one thread).
 
-Alignment-based fasttype results correspond very closely to the ktype results (k = 32).
+Alignment-based fasttype results correspond very closely to the ktype results in most cases. For the limited trials, with relatively few SNPs, described below, I've tried k = 32 and k = 64, and there's little difference. There are still some undiagnosed differences where, in some cases, ktype finds anywhere from ~1/2 - 2x as many of one or both nucleotides as fasttype. For simple sample matching, this isn't a huge problem because at least it's consistent across samples, but is certainly not the expected behavior.
 
 
 Notes

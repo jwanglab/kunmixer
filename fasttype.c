@@ -283,7 +283,7 @@ int main(int argc, char *argv[]) {
       //printf("%d reads processed\n", ct);
     }
 
-    if (aln->core.flag & 4) { // unmapped
+    if (aln->core.flag & (2048+256+4)) { // unmapped, secondary, or supplementary alignment
       continue;
     }
 
@@ -373,6 +373,7 @@ int main(int argc, char *argv[]) {
                 kv_A(alleles, kh_val(lmap, subbin)).g++;
               else if(qc == 'T')
                 kv_A(alleles, kh_val(lmap, subbin)).t++;
+              //printf("pos: %d, allele: %c\n", pos, qc);
             }
           }
           pos++;
