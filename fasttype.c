@@ -199,12 +199,12 @@ int main(int argc, char *argv[]) {
   }
 
   if (bam == NULL) {
-    //fprintf(stderr, "Error opening \"%s\"\n", bam_file);
+    fprintf(stderr, "Error opening \"%s\"\n", bam_file);
     return -1;
   }
   header = sam_hdr_read(bam);
   if (header == NULL) {
-    //fprintf(stderr, "Couldn't read header for \"%s\"\n", bam_file);
+    fprintf(stderr, "Couldn't read header for \"%s\"\n", bam_file);
     return -1;
   }
   // construct array from reference information so that we can look it up with read.tid

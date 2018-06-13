@@ -281,12 +281,16 @@ int main(int argc, char *argv[]) {
   int hits = 0;
   for(r = 0; r < n_read_files; r++) {
     gzfp = gzopen(read_files[r], "r");
+    if(!gzfp) {
+      fprintf(stderr, "File '%s' not found\n", read_files[r]);
+      return 1;
+    }
     seq = kseq_init(gzfp);
-    //printf("Reading fasta file: %s\n", ref_fasta);
+    printf("Reading fasta file: %s\n", read_files[r]);
 
     while ((l = kseq_read(seq)) >= 0) {
       // name: seq->name.s, seq: seq->seq.s, length: l
-      //printf("Reading %s (%i bp).\n", seq->name.s, l);
+      printf("Reading %s (%i bp).\n", seq->name.s, l);
 
       for(s = 0; s < l; s=s+k) {
         memcpy(kmer, seq->seq.s+(s+k >= l ? l-k : s), k);
