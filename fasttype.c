@@ -192,28 +192,28 @@ int main(int argc, char *argv[]) {
 
   if(strcmp(bam_file,  "-") == 0) {
     bam = sam_open("-", "r");
-    fprintf(stderr, "Reading from stdin...\n");
+    //fprintf(stderr, "Reading from stdin...\n");
   } else {
     bam = sam_open(bam_file, "rb");
-    fprintf(stderr, "Reading from bam file '%s'...\n", bam_file);
+    //fprintf(stderr, "Reading from bam file '%s'...\n", bam_file);
   }
 
   if (bam == NULL) {
-    fprintf(stderr, "Error opening \"%s\"\n", bam_file);
+    //fprintf(stderr, "Error opening \"%s\"\n", bam_file);
     return -1;
   }
   header = sam_hdr_read(bam);
   if (header == NULL) {
-    fprintf(stderr, "Couldn't read header for \"%s\"\n", bam_file);
+    //fprintf(stderr, "Couldn't read header for \"%s\"\n", bam_file);
     return -1;
   }
   // construct array from reference information so that we can look it up with read.tid
   char **ref_array = malloc(sizeof(char*) * header->n_targets);
   int *rlen_array = malloc(sizeof(uint32_t) * header->n_targets); // has to be a plain int because that's what kseq gives out
-  //printf("BAM targets (%d):\n", header->n_targets);
+  //fprintf(stderr, "BAM targets (%d):\n", header->n_targets);
   int i, j;
   for (i = 0; i < header->n_targets; i++) {
-    //printf("%s (%u bp)\n", header->target_name[i], header->target_len[i]);
+    //fprintf(stderr, "%s (%u bp)\n", header->target_name[i], header->target_len[i]);
     bin = kh_get(refSeq, ref, header->target_name[i]);
     ref_array[i] = kh_value(ref, bin);
     bin = kh_get(refLen, rlen, header->target_name[i]);
@@ -225,6 +225,7 @@ int main(int argc, char *argv[]) {
     bin = kh_put(refId, rid, header->target_name[i], &absent);
     kh_val(rid, bin) = i;
   }
+  //fprintf(stderr, "Done reading bam targets\n");
 
 
   // initialize empty locus mask to mark loci in the BED file
@@ -257,16 +258,25 @@ int main(int argc, char *argv[]) {
 
     // set locus mask
     bin = kh_get(refId, rid, entry->chrom);
-    // TODO: check to make sure bin exists - this segfaults if the BAM file was broken somehow
-    int tid = kh_val(rid, bin);
-    locus_mask[tid][entry->st/8] |= (1<<(entry->st%8));
+    absent = (bin == kh_end(rid)); 
+    if(absent) {
+      fprintf(stderr, "Target sequence '%s' in bed file does not exist in reference, skipping it\n", entry->chrom);
+    } else {
+      int tid = kh_val(rid, bin);
+      locus_mask[tid][entry->st/8] |= (1<<(entry->st%8));
 
-    // add ref allele to the list
-    kv_push(char, loci_ref_allele, ref_array[tid][entry->st]);
+      // add ref allele to the list
+      kv_push(char, loci_ref_allele, ref_array[tid][entry->st]);
+    }
 
     entry = bed_read_line(&bed);
   }
   //bed_close(&bed);
+
+  if(kv_size(loci_ref_allele) == 0) {
+    fprintf(stderr, "No valid loci in bed file, terminating\n");
+    return 1;
+  }
 
 
   // process reads...
