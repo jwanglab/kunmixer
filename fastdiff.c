@@ -2,9 +2,9 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include "incl/htslib/htslib/sam.h"
-#include "incl/htslib/htslib/khash.h"
-#include "incl/htslib/htslib/ksort.h"
-#include "incl/htslib/htslib/kseq.h"
+#include "incl/klib/khash.h"
+#include "incl/klib/ksort.h"
+#include "incl/klib/kseq.h"
 
 /*
  * fastdiff.c
