@@ -69,7 +69,7 @@ bed_header_t parse_header(FILE* bed_fp) {
 }
 
 bed_line_t *bed_read_line(bed_file_t* bed) {
-  const char* bed_format = "%s\t%d\t%d\t%s\t%d\t%c";
+  //const char* bed_format = "%s\t%d\t%d\t%s\t%d\t%c";
 
   // bed line parts:
   char chrom[10], name[100];
@@ -80,8 +80,43 @@ bed_line_t *bed_read_line(bed_file_t* bed) {
   
   bed->cur_row++;
 
+  // parse BED line by tokenizing - allows arbitrary fields after BED-6
+  char* s = malloc(sizeof(char)*100);
+  const char delim[3] = "\t\n";
+  size_t len;
+  size_t read = getline(&s, &len, bed->fp);
+  if(read == -1) return NULL;
+  char* token;
+  token = strtok(s, delim);
+  int i;
+  for(i = 0; token != NULL; i++) {
+    switch(i) {
+      case 0:
+        strcpy(line->chrom, token);
+        line->chrom[strlen(token)] = NULL; // manually add null-terminator
+        break;
+      case 1:
+        line->st = atoi(token);
+        break;
+      case 2:
+        line->en = atoi(token);
+        break;
+      case 3:
+        strcpy(line->name, token);
+        line->name[strlen(token)] = NULL; // manually add null-terminator
+        break;
+      case 4:
+        line->score = atoi(token);
+        break;
+      case 5:
+        line->strand = token[0];
+        break;
+    }
+    token = strtok(NULL, delim);
+  }
+  /*
   int nfields = fscanf(bed->fp, bed_format, line->chrom, &(line->st), &(line->en), line->name, &(line->score), &(line->strand));
-  if(nfields != 6) { // line too short or small or -1 for EOF
+  if(nfields < 6) { // line too short or small or -1 for EOF
     if(nfields == -1) {
       return NULL;
     } else {
@@ -89,6 +124,7 @@ bed_line_t *bed_read_line(bed_file_t* bed) {
       return NULL;
     }
   }
+  */
 
   return line;
 }
