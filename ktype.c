@@ -158,9 +158,14 @@ int main(int argc, char *argv[]) {
   kseq_t *seq;
   int l;
 
-  int k = 32; // I just made this up
+  int k = 64; // I just made this up
 
   gzfp = gzopen(ref_fasta, "r");
+  if(!gzfp) {
+    fprintf(stderr, "File '%s' not found\n", ref_fasta);
+    return 1;
+  }
+  //printf("Reading fasta file: %s\n", ref_fasta);
   seq = kseq_init(gzfp);
 
   //printf("Reading fasta file: %s\n", ref_fasta);
@@ -193,6 +198,7 @@ int main(int argc, char *argv[]) {
   //
   bed_file_t bed = bed_init(bed_file);
   khash_t(chromMap) *regions = kh_init(chromMap); // our nested hash map (l0: chrom, l1: pos)
+  //printf("Reading BED file '%s'\n", bed_file);
   bed_line_t *entry = bed_read_line(&bed);
 
   khash_t(kmerMap) *kmer_hash = kh_init(kmerMap);
@@ -200,6 +206,9 @@ int main(int argc, char *argv[]) {
   kmer[k] = (char)NULL;
   char* kmer_rc = malloc(sizeof(char)*(k+1));
   kmer_rc[k] = (char)NULL;
+
+  int tot_kmer = 0;
+  int dup_kmer = 0;
 
   while(entry != NULL) {
     //printf("%s %d %d\n", entry->chrom, entry->st, entry->en);
@@ -244,22 +253,26 @@ int main(int argc, char *argv[]) {
       for(alt_id = 0; alt_id < N_ALLELES; alt_id++) {
         kmer[-1*offset] = ALLELES[alt_id];
         bin = kh_put(kmerMap, kmer_hash, strdup(kmer), &absent);
+        tot_kmer++;
         if(!absent) {
-          fprintf(stderr, "kmer '%s' already exists - maybe from a different locus?!\n", kmer);
+          //fprintf(stderr, "kmer '%s' already exists - maybe from a different locus?!\n", kmer);
+          dup_kmer++;
           continue;
         }
         locus_allele lal = {locus_id, alt_id, offset};
-        /*
-        for(i = 0; i < k+offset; i++) printf(" ");
-        printf("%s     is %d allele %d\n", kmer, lal.locus_id, lal.allele_id);
-        */
+
+        //for(i = 0; i < k+offset; i++) fprintf(stderr, " ");
+        //fprintf(stderr, "%s     is %d allele %d\n", kmer, lal.locus_id, lal.allele_id);
+
         kh_val(kmer_hash, bin) = lal;
 
         // and reverse-complement
         kmer_rc[k-1+offset] = compl(ALLELES[alt_id]);
         bin = kh_put(kmerMap, kmer_hash, strdup(kmer_rc), &absent);
+        tot_kmer++;
         if(!absent) {
-          fprintf(stderr, "kmer '%s' (-) already exists - maybe from a different locus?!\n", kmer_rc);
+          //fprintf(stderr, "kmer '%s' (-) already exists - maybe from a different locus?!\n", kmer_rc);
+          dup_kmer++;
           continue;
         }
         kh_val(kmer_hash, bin) = lal;
@@ -271,8 +284,10 @@ int main(int argc, char *argv[]) {
     }
 
     entry = bed_read_line(&bed);
+    //if(kv_size(loci) >= 7) break;
   }
   //bed_close(&bed);
+  fprintf(stderr, "%d of %d (%f%%) k-mers duplicated\n", dup_kmer, tot_kmer, (float)dup_kmer/tot_kmer*100);
 
 
   // go through each read fasta/q file in turn
@@ -285,11 +300,11 @@ int main(int argc, char *argv[]) {
       return 1;
     }
     seq = kseq_init(gzfp);
-    printf("Reading fasta file: %s\n", read_files[r]);
+    //printf("Reading fasta file: %s\n", read_files[r]);
 
     while ((l = kseq_read(seq)) >= 0) {
       // name: seq->name.s, seq: seq->seq.s, length: l
-      printf("Reading %s (%i bp).\n", seq->name.s, l);
+      //printf("Reading %s (%i bp).\n", seq->name.s, l);
 
       for(s = 0; s < l; s=s+k) {
         memcpy(kmer, seq->seq.s+(s+k >= l ? l-k : s), k);
@@ -301,8 +316,8 @@ int main(int argc, char *argv[]) {
           locus_allele lal = kh_val(kmer_hash, bin);
           kv_A(alleles, lal.locus_id)[lal.allele_id]++;
           //for(i = 0; i < k+lal.offset; i++) printf(" ");
-          //printf("%s     hit %d allele %d\n", kmer, lal.locus_id, lal.allele_id);
-          break;
+          //fprintf(stderr, "%s     at read %d pos %d, hit locus %d allele %d\n", kmer, n, s-lal.offset, lal.locus_id, lal.allele_id);
+          //break; // I'm not sure why we once did this
         }
       }
 
@@ -315,7 +330,7 @@ int main(int argc, char *argv[]) {
     gzclose(gzfp);
     kseq_destroy(seq);
   }
-  fprintf(stderr, "%d k-mers hit a variant\n", hits);
+  //fprintf(stderr, "%d k-mers hit a variant\n", hits);
 
 
   // output "variant" positions
