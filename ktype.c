@@ -123,17 +123,18 @@ char compl(char a) {
 int main(int argc, char *argv[]) {
 
   if(argc < 4) {
-    fprintf(stderr, "Usage: ktype <BED> <reference FASTA> <read FASTA/Q> [<read FASTA/Q> ...]\n");
+    fprintf(stderr, "Usage: ktype <k> <BED> <reference FASTA> <read FASTA/Q> [<read FASTA/Q> ...]\n");
     fprintf(stderr, "Not enough arguments.\n");
     return 1;
   }
-  char *bed_file = argv[1];
-  char *ref_fasta = argv[2];
+  int k = atoi(argv[1]);
+  char *bed_file = argv[2];
+  char *ref_fasta = argv[3];
   int n_read_files = argc - 3;
   char **read_files = malloc(sizeof(char*) * n_read_files);
   int i;
-  for(i = 3; i < argc; i++) {
-    read_files[i-3] = argv[i];
+  for(i = 4; i < argc; i++) {
+    read_files[i-4] = argv[i];
   }
 
   khint_t bin, subbin; // hash bin (result of kh_put)
@@ -157,8 +158,6 @@ int main(int argc, char *argv[]) {
   gzFile gzfp;
   kseq_t *seq;
   int l;
-
-  int k = 64; // I just made this up
 
   gzfp = gzopen(ref_fasta, "r");
   if(!gzfp) {
