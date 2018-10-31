@@ -130,7 +130,7 @@ int main(int argc, char *argv[]) {
   int k = atoi(argv[1]);
   char *bed_file = argv[2];
   char *ref_fasta = argv[3];
-  int n_read_files = argc - 3;
+  int n_read_files = argc - 4;
   char **read_files = malloc(sizeof(char*) * n_read_files);
   int i;
   for(i = 4; i < argc; i++) {
