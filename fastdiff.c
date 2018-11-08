@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <string.h>
 #include "incl/htslib/htslib/sam.h"
 #include "incl/klib/khash.h"
 #include "incl/klib/ksort.h"
@@ -50,6 +51,7 @@ int main(int argc, char *argv[]) {
   FILE* fp;
   kseq_t *seq, *nextseq;
   int l, absent;
+  char* dup;
 
   fp = fopen(ref_fasta, "r");
   seq = kseq_init(fp);
@@ -62,13 +64,16 @@ int main(int argc, char *argv[]) {
     printf("Reading %s (%i bp).\n", seq->name.s, l);
 
     // seq array
-    bin = kh_put(refSeq, ref, strdup(seq->name.s), &absent);
+    dup = malloc(sizeof(char) * (strlen(seq->name.s) + 1));
+    dup[strlen(seq->name.s)] = '\0';
+    memcpy(dup, seq->name.s, sizeof(char) * strlen(seq->name.s));
+    bin = kh_put(refSeq, ref, dup, &absent);
     // copy the seq read from kseq to a new heap here - this is pretty fast and the easiest way to implement right now (see kseq.h)
     kh_val(ref, bin) = malloc(sizeof(char)*l);
     memcpy(kh_val(ref, bin), seq->seq.s, sizeof(char)*l);
 
     // sequence length
-    bin = kh_put(refLen, rlen, strdup(seq->name.s), &absent);
+    bin = kh_put(refLen, rlen, dup, &absent);
     kh_val(rlen, bin) = l;
   }
 

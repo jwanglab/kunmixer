@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <string.h>
 #include "bed.h"
 
 bed_header_t parse_header(FILE* bed_fp) {
@@ -25,7 +26,9 @@ bed_header_t parse_header(FILE* bed_fp) {
     ungetc(c, bed_fp); // QUICK! put it back! (basically just a peek)
     if((char)c == '@') { // header line
       if(fgets(line, sizeof line, bed_fp) != NULL) {
-        char* ln = strdup(line);
+        char* ln = malloc(sizeof(char) * (strlen(line) + 1));
+        ln[strlen(line)] = '\0';
+        memcpy(ln, line, sizeof(char) * strlen(line));
         parts = malloc(sizeof(char*) * 10); // maximum 10 fields in a single header line
         i = 0;
         parts[i] = strtok(ln, delim);
@@ -55,9 +58,7 @@ bed_header_t parse_header(FILE* bed_fp) {
             }
           }
         }
-        //for(j = 0; j < nfields; j++) {
-        //  free(parts[j]);
-        //}
+        free(ln);
         free(parts);
       }
     } else { // non-header line
@@ -125,6 +126,7 @@ bed_line_t *bed_read_line(bed_file_t* bed) {
     }
   }
   */
+  free(s);
 
   return line;
 }

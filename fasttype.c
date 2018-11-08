@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <string.h>
 #include "incl/htslib/htslib/sam.h"
 #include "incl/klib/khash.h"
 #include "incl/klib/ksort.h"
@@ -115,9 +116,9 @@ void print_alignment(int32_t* cigar, int n_cigar, uint8_t* qseq, char* rseq, int
       break;
     }
   }
-  qstring[i] = (char)NULL;
-  astring[i] = (char)NULL;
-  rstring[i] = (char)NULL;
+  qstring[i] = '\0';
+  astring[i] = '\0';
+  rstring[i] = '\0';
   printf("%s\n", qstring);
   printf("%s\n", astring);
   printf("%s\n", rstring);
@@ -159,6 +160,7 @@ int main(int argc, char *argv[]) {
   FILE* fp;
   kseq_t *seq, *nextseq;
   int l;
+  char* dup;
 
   fp = fopen(ref_fasta, "r");
   seq = kseq_init(fp);
@@ -169,13 +171,16 @@ int main(int argc, char *argv[]) {
     //printf("Reading %s (%i bp).\n", seq->name.s, l);
 
     // seq array
-    bin = kh_put(refSeq, ref, strdup(seq->name.s), &absent);
+    dup = malloc(sizeof(char) * (strlen(seq->name.s) + 1));
+    dup[strlen(seq->name.s)] = '\0';
+    memcpy(dup, seq->name.s, sizeof(char) * strlen(seq->name.s));
+    bin = kh_put(refSeq, ref, dup, &absent);
     // copy the seq read from kseq to a new heap here - this is pretty fast and the easiest way to implement right now (see kseq.h)
     kh_val(ref, bin) = malloc(sizeof(char)*l);
     memcpy(kh_val(ref, bin), seq->seq.s, sizeof(char)*l);
 
     // sequence length
-    bin = kh_put(refLen, rlen, strdup(seq->name.s), &absent);
+    bin = kh_put(refLen, rlen, dup, &absent);
     kh_val(rlen, bin) = l;
   }
 
@@ -246,7 +251,10 @@ int main(int argc, char *argv[]) {
     kv_push(bed_line_t, loci, entry);
     
     // look up chromosome in first-level hash
-    bin = kh_put(chromMap, regions, strdup(entry->chrom), &absent);
+    dup = malloc(sizeof(char) * (strlen(entry->chrom) + 1));
+    dup[strlen(entry->chrom)] = '\0';
+    memcpy(dup, entry->chrom, sizeof(char) * strlen(entry->chrom));
+    bin = kh_put(chromMap, regions, dup, &absent);
     if(absent) {
       kh_val(regions, bin) = kh_init(lociMap);
     }
@@ -331,7 +339,7 @@ int main(int argc, char *argv[]) {
     //printf("query of len %d aligned to target %d (%s) at pos %d (%c), cigar: ", qlen, tid, header->target_name[tid], pos, (rev ? '-' : '+'));
  
     // look up nested hashes (slower than mask lookup)
-    bin = kh_get(chromMap, regions, strdup(header->target_name[tid]));
+    bin = kh_get(chromMap, regions, header->target_name[tid]);
     absent = (bin == kh_end(regions)); 
     if(absent) {
       continue;
@@ -407,7 +415,7 @@ int main(int argc, char *argv[]) {
   printf("chrom\tstart\tend\tref_allele\tA\tC\tG\tT\tN\tUnknown\n");
   for (i = 0; i < kv_size(loci); i++) {
     // at this point, we're assuming these regions are in the hash(es) (and NOT checking)
-    bin = kh_get(chromMap, regions, strdup(kv_A(loci, i)->chrom));
+    bin = kh_get(chromMap, regions, kv_A(loci, i)->chrom);
     subbin = kh_get(lociMap, kh_val(regions, bin), kv_A(loci, i)->st);
     locus al = kv_A(alleles, kh_val(kh_val(regions, bin), subbin));
     printf("%s\t%d\t%d\t%c\t%d\t%d\t%d\t%d\t%d\t%d\n", kv_A(loci, i)->chrom, kv_A(loci, i)->st, kv_A(loci, i)->en, kv_A(loci_ref_allele, i), al.a, al.c, al.g, al.t, al.n, al.u);
