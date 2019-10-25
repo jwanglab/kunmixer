@@ -1,7 +1,7 @@
 fastvar
 =======
 
-Some quick 'n dirty variant calling tools
+Some quick 'n dirty variant "estimation" tools. The intent of this project is not to create *accurate* genotypes, per se, as there are a great many good softwares for doing this, but to create the fastest possible genotypes that are passable to assess sample integrity, match samples from the same person, and approximate relatedness among individuals.
 
 Installation
 ------------
