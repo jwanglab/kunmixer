@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
-#include "incl/htslib/htslib/sam.h"
+#include "sam.h"
 #include "incl/klib/khash.h"
 #include "incl/klib/ksort.h"
 #include "incl/klib/kseq.h"
@@ -428,7 +428,7 @@ int main(int argc, char *argv[]) {
   free(locus_mask);
 
   // clean up this first pass through the BAM file
-  bam_hdr_destroy(header);
+  sam_hdr_destroy(header);
 
   ret_val = sam_close(bam);
   if (ret_val < 0) {

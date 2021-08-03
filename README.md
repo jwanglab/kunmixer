@@ -11,7 +11,10 @@ Installation
     mkdir incl
     cd incl
     
-    # install htslib
+    # get klib headers
+    git clone http://github.com/attractivechaos/klib
+    
+    # IF NECESSARY -- install htslib
     git clone http://github.com/samtools/htslib
     cd htslib
     autoheader
@@ -21,21 +24,12 @@ Installation
     make install
     cd ..
     
-    # get klib headers
-    git clone http://github.com/attractivechaos/klib
-    
     cd ..
     make
 
 If you don't have root access to your machine, you will need to install and link htslib locally, by doing the above EXCEPT replace `make install` with the following:
 
-    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(pwd)/lib
-
-To make this permanent so that it works after logging out, this will work in most cases:
-
-    echo 'export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:'"$(pwd)/lib" >> ~/.bashrc
-
-If you have samtools installed already, you may not need to install htslib at all. If your machine or cluster is using something like *modules*, and has samtools, just load it `module load samtools`.
+    export LIBRARY_PATH=$LIBRARY_PATH:$(pwd)
 
 Usage
 -----
