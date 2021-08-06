@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
-#include "sam.h"
+#include "htslib/sam.h"
 #include "incl/klib/khash.h"
 #include "incl/klib/ksort.h"
 #include "incl/klib/kseq.h"
