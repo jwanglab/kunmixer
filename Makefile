@@ -12,7 +12,7 @@ fasttype: fasttype.c
 	$(CC) $(CFLAGS) bed.c fasttype.c -o fasttype -lhts
 
 ktype: ktype.c
-	$(CC) $(CFLAGS) -lz bed.c ktype.c -o ktype
+	$(CC) $(CFLAGS) bed.c ktype.c -o ktype -lz
 
 .PHONY: clean
 clean:

@@ -6,30 +6,29 @@ Some quick 'n dirty variant "estimation" tools. The intent of this project is no
 Installation
 ------------
 
+Dependencies:
+
+[HTSLib v1.10+] (https://github.com/samtools/htslib/releases/tag/1.13) must be [installed] (https://github.com/samtools/htslib/blob/develop/INSTALL) globally on your machine, or if you don't have root access to your machine, tell GCC where a local htslib is.
+
+For example, if you have built htslib in `/home/user/htslib`:
+
+    export LIBRARY_PATH=/home/usr/htslib:$LIBRARY_PATH
+    export CPATH=/home/usr/htslib/htslib:$CPATH
+
+Install:
+
     git clone http://github.com/txje/fastvar
     cd fastvar
-    mkdir incl
-    cd incl
     
     # get klib headers
+    mkdir incl
+    cd incl
     git clone http://github.com/attractivechaos/klib
-    
-    # IF NECESSARY -- install htslib
-    git clone http://github.com/samtools/htslib
-    cd htslib
-    autoheader
-    autoconf
-    ./configure
-    make
-    make install
     cd ..
     
     cd ..
     make
 
-If you don't have root access to your machine, you will need to install and link htslib locally, by doing the above EXCEPT replace `make install` with the following:
-
-    export LIBRARY_PATH=$LIBRARY_PATH:$(pwd)
 
 Usage
 -----
