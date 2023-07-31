@@ -9,23 +9,6 @@
 #include "incl/klib/kvec.h"
 #include "bed.h"
 
-// wikipedia
-void show_bits(unsigned int x) {
-    int i; 
-    for(i=(sizeof(int)*8)-1; i>=0; i--)
-      (x&(1u<<i))?putchar('1'):putchar('0');
-    printf("\n");
-}
-
-/*
- * fasttype.c
- *
- * Jeremy Wang
- * 20180501
- *
- * As fast as possible, compute the set of alleles at each locus given in the BED file
-*/
-
 // have to reorder params to make this work with kseq
 int fileread(FILE* f, char* buffer, int size) {
   return fread(buffer, 1, size, f);
@@ -131,7 +114,7 @@ void print_alignment(int32_t* cigar, int n_cigar, uint8_t* qseq, char* rseq, int
 int main(int argc, char *argv[]) {
 
   if(argc < 4) {
-    fprintf(stderr, "Usage: fasttype <BAM> <BED> <reference FASTA>\n");
+    fprintf(stderr, "Usage: alntype <BAM> <BED> <reference FASTA>\n");
     fprintf(stderr, "Not enough arguments.\n");
     return -1;
   }
@@ -248,7 +231,7 @@ int main(int argc, char *argv[]) {
   bed_line_t *entry = bed_read_line(&bed);
   while(entry != NULL) {
     //printf("%s %d %d\n", entry->chrom, entry->st, entry->en);
-    kv_push(bed_line_t, loci, entry);
+    kv_push(bed_line_t*, loci, entry);
     
     // look up chromosome in first-level hash
     dup = malloc(sizeof(char) * (strlen(entry->chrom) + 1));

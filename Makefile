@@ -1,18 +1,18 @@
 CC=gcc
 CFLAGS=-std=c99
 
-OBJECTS = fastdiff fasttype ktype
+OBJECTS = alntype ktype fastdiff
 
 all: $(OBJECTS)
 
 fastdiff: fastdiff.c
 	$(CC) $(CFLAGS) fastdiff.c -o fastdiff -lhts
 
-fasttype: fasttype.c
-	$(CC) $(CFLAGS) bed.c fasttype.c -o fasttype -lhts
+alntype: alntype.c
+	$(CC) $(CFLAGS) bed.c alntype.c -o alntype -lhts
 
 ktype: ktype.c
-	$(CC) $(CFLAGS) bed.c ktype.c -o ktype -lz
+	$(CC) $(CFLAGS) bed.c ktype.c -o ktype -lz -lbz2
 
 .PHONY: clean
 clean:

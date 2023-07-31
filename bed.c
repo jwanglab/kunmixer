@@ -1,3 +1,4 @@
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -94,7 +95,7 @@ bed_line_t *bed_read_line(bed_file_t* bed) {
     switch(i) {
       case 0:
         strcpy(line->chrom, token);
-        line->chrom[strlen(token)] = NULL; // manually add null-terminator
+        line->chrom[strlen(token)] = '\0'; // manually add null-terminator
         break;
       case 1:
         line->st = atoi(token);
@@ -104,7 +105,7 @@ bed_line_t *bed_read_line(bed_file_t* bed) {
         break;
       case 3:
         strcpy(line->name, token);
-        line->name[strlen(token)] = NULL; // manually add null-terminator
+        line->name[strlen(token)] = '\0'; // manually add null-terminator
         break;
       case 4:
         line->score = atoi(token);

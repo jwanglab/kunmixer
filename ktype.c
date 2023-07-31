@@ -3,37 +3,17 @@
 #include <stdint.h>
 #include "incl/klib/khash.h"
 #include "incl/klib/ksort.h"
-#include "incl/klib/kseq.h"
+#include "kseq_by_type.h"
 #include "incl/klib/kvec.h"
 #include "bed.h"
 #include <zlib.h>
+#include <bzlib.h>
 
-
-// wikipedia
-void show_bits(unsigned int x) {
-    int i; 
-    for(i=(sizeof(int)*8)-1; i>=0; i--)
-      (x&(1u<<i))?putchar('1'):putchar('0');
-    printf("\n");
-}
-
-/*
- * ktype.c
- *
- * Jeremy Wang
- * 20180504
- *
- * As fast as possible, compute the set of alleles at each locus given in the BED file
- * This time using a raw fasta/q file instead of alignments, so we'll build a k-mer hash of some sort
-*/
 
 // have to reorder params to make this work with kseq
 int fileread(FILE* f, char* buffer, int size) {
   return fread(buffer, 1, size, f);
 }
-
-// init kseq struct
-KSEQ_INIT(gzFile, gzread)
 
 // creates string:[array of uint8] hash
 // to map chrom names to sequences
@@ -123,6 +103,15 @@ char compl(char a) {
   return 'N';
 }
 
+int bz2read_wrapper(BZFILE *b, void *buf, int len) {
+  int bzerror;
+  int l = BZ2_bzRead ( &bzerror, b, buf, len );
+  return l;
+}
+
+// init kseq struct
+KSEQ_INIT_READER(gzFile, gzread, gz)
+KSEQ_INIT_READER(BZFILE*, bz2read_wrapper, bz2)
 
 int main(int argc, char *argv[]) {
 
@@ -160,7 +149,7 @@ int main(int argc, char *argv[]) {
   khash_t(refId) *rid = kh_init(refId);
 
   gzFile gzfp;
-  kseq_t *seq;
+  kseq_t_gz *seq;
   int l;
 
   gzfp = gzopen(ref_fasta, "r");
@@ -169,11 +158,11 @@ int main(int argc, char *argv[]) {
     return 1;
   }
   fprintf(stderr, "Reading fasta file: %s\n", ref_fasta);
-  seq = kseq_init(gzfp);
+  seq = kseq_init_gz(gzfp);
 
   int refid = 0;
   char* dup;
-  while ((l = kseq_read(seq)) >= 0) {
+  while ((l = kseq_read_gz(seq)) >= 0) {
     // name: seq->name.s, seq: seq->seq.s, length: l
     //printf("Reading %s (%i bp).\n", seq->name.s, l);
 
@@ -197,7 +186,7 @@ int main(int argc, char *argv[]) {
   }
 
   gzclose(gzfp);
-  kseq_destroy(seq);
+  kseq_destroy_gz(seq);
 
 
   // load BED file
@@ -221,7 +210,7 @@ int main(int argc, char *argv[]) {
 
   while(entry != NULL) {
     //fprintf(stderr, "%s %d %d\n", entry->chrom, entry->st, entry->en);
-    kv_push(bed_line_t, loci, entry);
+    kv_push(bed_line_t*, loci, entry);
     
     //fprintf(stderr, "chrom lookup\n");
     // look up chromosome in first-level hash
@@ -253,14 +242,14 @@ int main(int argc, char *argv[]) {
     // construct k-mers in this region with different alleles
     // and add to k-mer hash
     bin = kh_get(refSeq, ref, entry->chrom);
-    char* seq = kh_val(ref, bin);
+    char* rs = kh_val(ref, bin);
     // add ref allele to the list
-    kv_push(char, loci_ref_allele, seq[entry->st]);
+    kv_push(char, loci_ref_allele, rs[entry->st]);
     int offset; // from the target locus position
     // this will crash if a locus is within (k)nt of the start or end of a chromosome
     for(offset = -1*(k-1); offset <= 0; offset++) {
       //fprintf(stderr, "offset: %d\n", offset);
-      memcpy(kmer, seq+entry->st+offset, sizeof(char)*k);
+      memcpy(kmer, rs+entry->st+offset, sizeof(char)*k);
       //fprintf(stderr, "kmer: %s\n", kmer);
       //make uppercase
       for(i = 0; i < k; i++) {
@@ -338,24 +327,51 @@ int main(int argc, char *argv[]) {
   fprintf(stderr, "%d of %d (%f%%) k-mers duplicated\n", dup_kmer, tot_kmer, (float)dup_kmer/tot_kmer*100);
 
 
+  void* seq2;
   // go through each read fasta/q file in turn
   int r, s, n; // r: index into read_files, s: index into read sequence, n: number of reads processed
   int hits = 0;
   for(r = 0; r < n_read_files; r++) {
-    gzfp = gzopen(read_files[r], "r");
-    if(!gzfp) {
-      fprintf(stderr, "File '%s' not found\n", read_files[r]);
-      return 1;
+    FILE* f;
+    BZFILE* b = NULL;
+    int bzerror;
+
+    // init kseq struct
+    if(strncmp(read_files[r]+strlen(read_files[r])-3, ".gz", 3) == 0) {
+      fprintf(stderr, "File '%s' is gzipped\n", read_files[r]);
+      gzfp = gzopen(read_files[r], "r");
+      if(!gzfp) {
+        fprintf(stderr, "File '%s' not found\n", read_files[r]);
+        return 1;
+      }
+      seq2 = kseq_init_gz(gzfp);
+    } else if (strncmp(read_files[r]+strlen(read_files[r])-4, ".bz2", 4) == 0) {
+      
+      fprintf(stderr, "File '%s' is bzip2'd\n", read_files[r]);
+      f = fopen(read_files[r], "r");
+      if (!f) {
+        fprintf(stderr, "File '%s' not found\n", read_files[r]);
+        return 1;
+      }
+      b = BZ2_bzReadOpen(&bzerror, f, 0, 0, (void *)NULL, 0);
+      if(!b) {
+        fprintf(stderr, "File '%s' identified as BZ2 but failed to open (?)\n", read_files[r]);
+        return 1;
+      }
+      seq2 = kseq_init_bz2(b);
     }
-    seq = kseq_init(gzfp);
+
     //printf("Reading fasta file: %s\n", read_files[r]);
 
-    while ((l = kseq_read(seq)) >= 0) {
+    while ((l = b ? kseq_read_bz2((kseq_t_bz2*)seq2) : kseq_read_gz((kseq_t_gz*)seq2)) > 0) {
       // name: seq->name.s, seq: seq->seq.s, length: l
-      //printf("Reading %s (%i bp).\n", seq->name.s, l);
+      //fprintf(stderr, "Reading %s (%i bp): %s (%d) %s (%d).\n", seq2->name.s, l, seq2->seq.s, seq2->seq.l, seq2->qual.s, seq2->qual.l);
 
       for(s = 0; s < l; s=s+k) {
-        memcpy(kmer, seq->seq.s+(s+k >= l ? l-k : s), k);
+        if(b)
+          memcpy(kmer, ((kseq_t_bz2*)seq2)->seq.s+(s+k >= l ? l-k : s), k);
+        else
+          memcpy(kmer, ((kseq_t_gz*)seq2)->seq.s+(s+k >= l ? l-k : s), k);
         bin = kh_get(kmerMap, kmer_hash, kmer);
         absent = (bin == kh_end(kmer_hash)); 
 
@@ -365,18 +381,24 @@ int main(int argc, char *argv[]) {
           kv_A(alleles, lal.locus_id)[lal.allele_id]++;
           //for(i = 0; i < k+lal.offset; i++) printf(" ");
           //fprintf(stderr, "%s     at read %d pos %d, hit locus %d allele %d\n", kmer, n, s-lal.offset, lal.locus_id, lal.allele_id);
-          //break; // I'm not sure why we once did this
         }
       }
 
       n++;
-      if(n % 100000 == 0) {
-        //fprintf(stderr, "Processed %d reads...\n", n);
+      if(n % 1000 == 0) {
+        //break;
       }
     }
+    //fprintf(stderr, "Ended reading %s (%i bp): %s.\n", seq2->name.s, l, seq2->seq.s);
 
-    gzclose(gzfp);
-    kseq_destroy(seq);
+    if(b) {
+      BZ2_bzReadClose(&bzerror, b);
+      fclose(f);
+      kseq_destroy_bz2((kseq_t_bz2*)seq2);
+    } else {
+      gzclose(gzfp);
+      kseq_destroy_gz((kseq_t_gz*)seq2);
+    }
   }
   //fprintf(stderr, "%d k-mers hit a variant\n", hits);
 

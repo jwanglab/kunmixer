@@ -7,16 +7,6 @@
 #include "incl/klib/ksort.h"
 #include "incl/klib/kseq.h"
 
-/*
- * fastdiff.c
- *
- * Jeremy Wang
- * 20180419
- *
- * As fast as possible compute the loci where the average read from
- * the bam file differs from the reference
-*/
-
 // have to reorder params to make this work with kseq
 int fileread(FILE* f, char* buffer, int size) {
   return fread(buffer, 1, size, f);
