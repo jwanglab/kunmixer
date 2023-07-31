@@ -103,7 +103,7 @@ Alignment-based fasttype results correspond very closely to the ktype results in
 Example
 -------
 
-A full example including run script and expected output is included in [https://github.com/jwanglab/kunmixer/example](https://github.com/jwanglab/kunmixer/example).
+See a [full example](https://github.com/jwanglab/kunmixer/tree/master/example) including run script and expected output.
 
 This example uses the excellent, public, and largely unrestricted dataset of matched tumor-normal pairs part of the [Texas Cancer Research Biobank (TCRB)](http://stegg.hgsc.bcm.edu/open.html). Registration and agreement not to attempt to re-identify the participants is required to access these data, but no additional DUA.
 
